@@ -33,8 +33,15 @@ namespace Com.Lilarcor.Cheeseknife {
 	public class BaseInjectionAttribute : Attribute {
 		public int ResourceId { get; private set; }
 
+		public bool Optional { get; private set; }
+
 		public BaseInjectionAttribute(int resourceId) {
 			ResourceId = resourceId;
+		}
+
+		public BaseInjectionAttribute(int resourceId, bool optional) {
+			ResourceId = resourceId;
+			Optional = optional;
 		}
 	}
 
@@ -58,6 +65,8 @@ namespace Com.Lilarcor.Cheeseknife {
 	[AttributeUsage(AttributeTargets.Method)]
 	public class InjectOnClick : BaseInjectionAttribute {
 		public InjectOnClick(int resourceId) : base(resourceId) { }
+
+		public InjectOnClick(int resourceId, bool optional) : base(resourceId, optional) { }
 	}
 
 	/// <summary>
@@ -504,6 +513,14 @@ namespace Com.Lilarcor.Cheeseknife {
 
 			// Get a reference to the Android UI object with the attributed resource id
 			var widget = view.FindViewById<View>(attribute.ResourceId);
+
+			if (widget == null) {
+				if (attribute.Optional) {
+					return;
+				}
+
+				throw new InvalidOperationException("Could not find the view with id: " + attribute.ResourceId);
+			}
 
 			// Attempt to find the given event name on the widget.
 			// If the event cannot be found, then we can't do anything
